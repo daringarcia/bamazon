@@ -7,7 +7,7 @@ var connection = mysql.createConnection({
     port: '8889',
     user: 'root',
     password: 'root',
-    database: 'bamazon'
+    database: 'bamazon_DB'
 });
 
 connection.connect(function (err, res) {
@@ -27,7 +27,7 @@ inquirer
             type: 'list',
             message: 'Which action would you like to take?',
             name: 'selection',
-            choices: ['View products for sale', 'View low inventory', 'Add to inventory', 'Add new product']
+            choices: ['View products for sale', 'View low inventory - Quantity less than 20', 'Add to inventory', 'Add new product']
         }
 
     ])
@@ -41,8 +41,8 @@ inquirer
                 console.table(result);
             })
         }
-        else if (selection === 'View low inventory') {
-            connection.query('SELECT * FROM product WHERE stock_quantity < 10', function (err, result) {
+        else if (selection === 'View low inventory - Quantity less than 20') {
+            connection.query('SELECT * FROM product WHERE stock_quantity < 20', function (err, result) {
                 if (err) {
                     throw err;
                 }
@@ -80,7 +80,7 @@ inquirer
                             }
                             var quantity = result[0].stock_quantity;
 
-                            connection.query('UPDATE product SET ? WHERE item_id = ?', [{ stock_quantity: parseInt(quantity) + parseInt(answers.quantity) }, answers.item_id], function (err, result) {
+                            connection.query('UPDATE product SET ? WHERE product_name = ?', [{ stock_quantity: parseInt(quantity) + parseInt(answers.quantity) }, answers.product_name], function (err, result) {
                                 if (err) {
                                     throw err;
                                 }
@@ -118,12 +118,20 @@ inquirer
                         message: 'How many will be added?',
                         name: 'stock_quantity'
                     },
+                    // Initially used deparment id, but that would require the user to know the number and corresponding name. Opted to use name instead
                     {
                         type: 'list',
                         message: 'Which department will this item be added to?',
                         name: 'department_name',
                         choices: choices
                     },
+                    // This section was throwing the deparment name instead of the department id after introducing department name. Decided to leave it out.
+                    // {
+                    //     type: 'list',
+                    //     message: 'Select the department id.',
+                    //     name: 'department_id',
+                    //     choices: choices
+                    // },
 
                 ])
                     .then(function (answers) {
@@ -132,13 +140,15 @@ inquirer
                                 product_name: answers.product_name,
                                 price: parseFloat(answers.price),
                                 stock_quantity: parseInt(answers.stock_quantity),
-                                department_name: parseInt(answers.department_name),
+                                department_name: answers.department_name,
+                                // Exclusion corresponding with department id exclusion above.
+                                // department_id: parseInt(answers.department_id),
                                 product_sales: 0
                             }], function (err, result) {
                                 if (err) {
                                     throw err;
                                 }
-                                console.log(result)
+                                console.log('You have added ' + (answers.product_name) + ' as a new product')
                             });
                     });
             });
