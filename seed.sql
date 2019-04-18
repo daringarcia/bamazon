@@ -1,4 +1,4 @@
-USE bamazon;
+USE bamazon_DB;
 
 INSERT INTO department (department_name, over_head_costs)
 VALUES 	('Fitness', 20350),
